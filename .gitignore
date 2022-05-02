@@ -1,0 +1,8 @@
+/bin/
+/.idea/
+/obj/
+/.idea/.idea.Futures/.idea/
+*.csproj
+*.sln
+*.meta
+/global.json
