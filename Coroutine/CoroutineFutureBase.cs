@@ -13,7 +13,10 @@ namespace FuturesV2.Coroutine
 
         protected void Next(IFuture obj)
         {
-            if (IsCancelled) return;
+            if (IsCancelled)
+            {
+                return;
+            }
             
             if (enumerator.MoveNext())
             {
@@ -28,7 +31,9 @@ namespace FuturesV2.Coroutine
                 }
             }
             else
+            {
                 Complete();
+            }
         }
 
         protected override void OnComplete()
@@ -46,7 +51,7 @@ namespace FuturesV2.Coroutine
             enumerator = null;
         }
 
-        public override bool Reuse()
+        protected override void OnReuse()
         {
             throw new NotSupportedException();
         }

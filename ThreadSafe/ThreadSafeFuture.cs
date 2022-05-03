@@ -227,7 +227,11 @@ namespace FuturesV2.ThreadSafe
             return StaticCast<T>(this);
         }
 
-        public virtual bool Reuse()
+        protected virtual void OnReuse()
+        {
+        }
+        
+        public bool Reuse()
         {
             lock (_syncRoot)
             {
@@ -236,6 +240,8 @@ namespace FuturesV2.ThreadSafe
                 IsCancelled = false;
                 IsDone = false;
                 IsRun = false;
+                
+                OnReuse();
                 return true;
             }
         }

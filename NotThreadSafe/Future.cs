@@ -4,7 +4,7 @@ namespace FuturesV2.NotThreadSafe
 {
     public abstract class Future : FutureBase
     {
-        public override void Cancel()
+        public sealed override void Cancel()
         {
             if (IsPromise || IsCancelled || IsDone)
             {
@@ -17,7 +17,7 @@ namespace FuturesV2.NotThreadSafe
             CallFinalizingHandlers();
         }
 
-        public override void Complete(bool force = false)
+        public sealed override void Complete(bool force = false)
         {
             if (IsCancelled || IsDone)
             {
@@ -31,7 +31,7 @@ namespace FuturesV2.NotThreadSafe
             CallFinalizingHandlers();
         }
 
-        public override IFuture Run()
+        public sealed override IFuture Run()
         {
             if (IsRun || IsCancelled || IsDone)
             {
@@ -51,7 +51,7 @@ namespace FuturesV2.NotThreadSafe
         {
         }
         
-        public override bool Reuse()
+        public sealed override bool Reuse()
         {
             if (!IsDone && !IsCancelled)
             {
