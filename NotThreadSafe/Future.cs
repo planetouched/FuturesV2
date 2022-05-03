@@ -46,6 +46,10 @@ namespace FuturesV2.NotThreadSafe
 
         protected abstract void OnRun();
         protected abstract void OnComplete();
+
+        protected virtual void OnReuse()
+        {
+        }
         
         public override bool Reuse()
         {
@@ -57,6 +61,8 @@ namespace FuturesV2.NotThreadSafe
             IsCancelled = false;
             IsDone = false;
             IsRun = false;
+
+            OnReuse();
             return true;
         }
     }
