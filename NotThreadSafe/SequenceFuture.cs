@@ -1,176 +1,96 @@
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using FuturesV2._Base;
 using FuturesV2.Enums;
 
 namespace FuturesV2.NotThreadSafe
 {
-    public class SequenceFuture : FutureBase, IFutureCollection
+    public class SequenceFuture : Future, IFutureCollection
     {
+        private readonly Queue<IFuture> _futures = new Queue<IFuture>();
+        private IFuture _current;
+        public IFuture[] Futures => _futures.ToArray();
         public int FuturesCount => _futures.Count;
-        
-        private readonly List<IFuture> _futures = new List<IFuture>();
         
         public SequenceFuture(IEnumerable<IFuture> futures)
         {
-            foreach (var future in futures)
-            {
-                if (future == null)
-                {
-                    continue;
-                }
-                AddFuture(future);
-            }
-        }
-
-        public SequenceFuture(params IFuture[] futures)
-        {
-            foreach (var future in futures)
-            {
-                if (future == null)
-                {
-                    continue;
-                }
-                AddFuture(future);
-            }
-        }
-
-        public List<IFuture> GetFuturesCopyList()
-        {
-            return new List<IFuture>(_futures);
+            Initialize(futures);
         }
         
-        public void AddFuture(IFuture future)
+        public IFuture Initialize(IEnumerable<IFuture> futures)
         {
-            if (IsRun || IsDone || IsCancelled || future.IsDone || future.IsCancelled)
+            foreach (var future in futures)
             {
-                return;
+                AddFuture(future);
             }
-            
-            _futures.Add(future);
-        }
 
-        private void OnFutureComplete(IFuture future)
-        {
-            _futures.Remove(future);
-            future.RemoveListener(OnFutureComplete);
-
-            if (_futures.Count > 0)
-            {
-                _futures[0].Run();
-                _futures[0].AddListener(FutureCompletionState.Both, OnFutureComplete);
-                return;
-            }
-            
-            IsDone = true;
-            IsRun = false;
-
-            CallHandlers();
-            CallFinalizingHandlers();
-        }
-
-        public override IFuture Run()
-        {
-            if (IsRun)
-            {
-                return this;
-            }
-            
-            IsRun = true;
-            CallStartingHandlers();
-            IsDone = _futures.Count == 0;
-            
-            if (IsDone)
-            {
-                IsRun = false;
-                CallHandlers();
-                CallFinalizingHandlers();
-            }
-            else
-            {
-                _futures[0].Run();
-                _futures[0].AddListener(FutureCompletionState.Both, OnFutureComplete);
-
-            }
-            
             return this;
         }
-
-        public override bool Reuse()
+        
+        public SequenceFuture(params IFuture[] futures)
         {
-            if (!IsDone && !IsCancelled)
+            Initialize(futures);
+        }
+        
+        public bool AddFuture(IFuture future)
+        {
+            if (IsRun || IsDone || IsCancelled || future == null || future.IsDone || future.IsCancelled)
             {
                 return false;
             }
             
-            IsCancelled = false;
-            IsDone = false;
-            IsRun = false;
+            _futures.Enqueue(future);
             return true;
         }
-
-        public override void Complete(bool force = false)
-        {
-            if (IsPromise || IsCancelled || IsDone)
-            {
-                return;
-            }
-
-            IsForceCompletion = force;
-            IsDone = true;
-            IsRun = false;
-
-            var copy = GetFuturesCopyList();
-            _futures.Clear();
-
-            foreach (var future in copy)
-            {
-                if (future.IsPromise)
-                {
-                    throw new Exception("future.isPromise == true");
-                }
-
-                if (future.IsCancelled || future.IsDone)
-                {
-                    continue;
-                }
-                
-                future.RemoveListener(OnFutureComplete);
-                future.Complete(force);
-            }
-
-            CallHandlers();
-            CallFinalizingHandlers();
-        }
         
-        public override void Cancel()
+        protected override void OnRun()
         {
-            if (IsPromise || IsCancelled || IsDone)
+            if (_futures.Count == 0)
             {
+                Complete();
                 return;
             }
-            
-            IsCancelled = true;
-            IsRun = false;
 
-            var copy = GetFuturesCopyList();
-            _futures.Clear();
+            RunNextFuture();
+        }
 
-            foreach (var future in copy)
+        private void RunNextFuture()
+        {
+            _current = _futures.Dequeue();
+            _current.Run();
+            _current.AddListener(FutureCompletionState.Both, OnFutureComplete);
+        }
+
+        private void OnFutureComplete(IFuture _)
+        {
+            if (_futures.Count > 0)
             {
-                if (future.IsPromise)
+                RunNextFuture();
+            }
+            else
+            {
+                Complete();
+            }
+        }
+
+        protected override void OnComplete()
+        {
+            _futures.Clear();
+            
+            if (_current != null)
+            {
+                _current.RemoveListener(OnFutureComplete);
+                
+                if (IsCancelled)
                 {
-                    throw new Exception("future.isPromise == true");
+                    _current.Cancel();
                 }
-                
-                if (future.IsCancelled || future.IsDone) continue;
-                
-                future.RemoveListener(OnFutureComplete);
-                future.Cancel();
+                else if (IsForceCompleted)
+                {
+                    _current.Complete(true);
+                }
             }
 
-            CallHandlers();
-            CallFinalizingHandlers();
+            _current = null;
         }
     }
 }

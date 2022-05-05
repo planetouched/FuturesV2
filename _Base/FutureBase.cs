@@ -9,7 +9,7 @@ namespace FuturesV2._Base
         public bool IsCancelled { get; protected set; }
         public bool IsDone { get; protected set; }
         public bool IsRun { get; protected set; }
-        public bool IsForceCompletion { get; protected set; }
+        public bool IsForceCompleted { get; protected set; }
         public bool IsPromise { get; private set; }
 
         private event Action<IFuture> Finalized;
@@ -122,7 +122,6 @@ namespace FuturesV2._Base
         public abstract void Complete(bool force = false);
         public abstract void Cancel();
         public abstract IFuture Run();
-        public abstract bool Reuse();
 
         private static T StaticCast<T>(IFuture future)
         {
@@ -133,6 +132,8 @@ namespace FuturesV2._Base
         {
             return StaticCast<T>(this);
         }
+
+        public abstract void ReUse();
 
         protected void SetAsPromise()
         {

@@ -8,7 +8,7 @@ namespace FuturesV2._Base
         bool IsCancelled { get; }
         bool IsDone { get; }
         bool IsRun { get; }
-        bool IsForceCompletion { get; }
+        bool IsForceCompleted { get; }
         bool IsPromise { get; }
         IFuture AddListenerOnStart(Action<IFuture> method);
         IFuture AddListener(FutureCompletionState state, Action<IFuture> method);
@@ -20,6 +20,6 @@ namespace FuturesV2._Base
         void Cancel();
         IFuture Run();
         T Cast<T>() where T : IFuture;
-        bool Reuse();
+        void ReUse();
     }
 }

@@ -11,7 +11,7 @@ namespace FuturesV2.ThreadSafe
         public bool IsCancelled { get; private set; }
         public bool IsDone { get; private set; }
         public bool IsRun { get; private set; }
-        public bool IsForceCompletion { get; private set;}
+        public bool IsForceCompleted { get; private set;}
         public bool IsPromise { get; private set; }
 
         private event Action<IFuture> Finalized;
@@ -193,7 +193,7 @@ namespace FuturesV2.ThreadSafe
                 }
 
                 IsDone = true;
-                IsForceCompletion = force;
+                IsForceCompleted = force;
             }
 
             OnComplete();
@@ -227,23 +227,9 @@ namespace FuturesV2.ThreadSafe
             return StaticCast<T>(this);
         }
 
-        protected virtual void OnReuse()
+        public void ReUse()
         {
-        }
-        
-        public bool Reuse()
-        {
-            lock (_syncRoot)
-            {
-                if (!IsDone && !IsCancelled) return false;
-            
-                IsCancelled = false;
-                IsDone = false;
-                IsRun = false;
-                
-                OnReuse();
-                return true;
-            }
+            throw new NotSupportedException();
         }
 
         protected void SetAsPromise()

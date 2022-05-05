@@ -1,6 +1,8 @@
 namespace FuturesV2._Base
 {
-    public interface IFutureCollection : IFuture, IFutureContainer
+    public interface IFutureCollection : IFutureContainer
     {
+        IFuture [] Futures { get; }
+        int FuturesCount { get; }
     }
 }

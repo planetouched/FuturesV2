@@ -6,49 +6,67 @@ using FuturesV2.Utils.ThreadSafe;
 
 namespace FuturesV2.NotThreadSafe
 {
-    public class SemaphoreFuture : Future
+    public class SemaphoreFuture : Future, IFutureCollection
     {
         private int _simultaneously;
-        private Queue<IFuture> _futures;
-        private FutureWatcher _futureWatcher;
+        private readonly Queue<IFuture> _futures = new Queue<IFuture>();
+        private readonly FutureWatcher _futureWatcher = new FutureWatcher();
+        public IFuture[] Futures => _futures.ToArray();
+        public int FuturesCount => _futures.Count;
         
         public SemaphoreFuture(int simultaneously, params IFuture[] futures)
         {
-            Init(simultaneously, futures);
+            Initialize(simultaneously, futures);
         }
 
         public SemaphoreFuture(int simultaneously, IEnumerable<IFuture> futures)
         {
-            Init(simultaneously, futures);
+            Initialize(simultaneously, futures);
         }
 
-        private void Init(int simultaneously, IEnumerable<IFuture> futures) 
+        private IFuture Initialize(int simultaneously, IEnumerable<IFuture> futures) 
         {
             _simultaneously = simultaneously;
-            _futures = new Queue<IFuture>(futures);
+            
+            foreach (var future in futures)
+            {
+                AddFuture(future);
+            }
+
+            return this;
+        }
+        
+        public bool AddFuture(IFuture future)
+        {
+            if (IsRun || IsDone || IsCancelled || future == null || future.IsDone || future.IsCancelled)
+            {
+                return false;
+            }
+            
+            _futures.Enqueue(future);
+            
+            return true;
         }
 
         private void RunNextFuture()
         {
             var f = _futures.Dequeue();
             _futureWatcher.AddFuture(f);
-            f.AddListener(FutureCompletionState.Both, FutureComplete);
+            f.AddListener(FutureCompletionState.Both, OnFutureComplete);
             f.Run();
         }
         
         protected override void OnRun()
         {
-            _futureWatcher = new FutureWatcher();
-            
             for (int i = 0; i < Math.Min(_simultaneously, _futures.Count) ; i++)
             {
                 RunNextFuture();
             }
         }
 
-        private void FutureComplete(IFuture obj)
+        private void OnFutureComplete(IFuture obj)
         {
-            if (IsCancelled)
+            if (IsCancelled || IsForceCompleted)
             {
                 return;
             }
@@ -59,6 +77,7 @@ namespace FuturesV2.NotThreadSafe
                 {
                     Complete();
                 }
+                
                 return;
             }
             
@@ -67,9 +86,15 @@ namespace FuturesV2.NotThreadSafe
 
         protected override void OnComplete()
         {
+            _futures.Clear();
+            
             if (IsCancelled)
             {
                 _futureWatcher.CancelFutures();
+            }
+            else if (IsForceCompleted)
+            {
+                _futureWatcher.ForceCompleteFutures();
             }
         }
     }

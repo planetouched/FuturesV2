@@ -1,178 +1,91 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using FuturesV2._Base;
 using FuturesV2.Enums;
 
 namespace FuturesV2.NotThreadSafe
 {
-    public class CompositeFuture : FutureBase, IFutureCollection
+    public class CompositeFuture : Future, IFutureCollection
     {
-        public int FuturesCount => _futures.Count;
-
         private readonly List<IFuture> _futures = new List<IFuture>();
-
+        public IFuture[] Futures => _futures.ToArray();
+        public int FuturesCount => _futures.Count;
+        
         public CompositeFuture(IEnumerable<IFuture> futures)
         {
-            foreach (var future in futures)
-            {
-                if (future == null)
-                {
-                    continue;
-                }
-                AddFuture(future);
-            }
+            Initialize(futures);
         }
 
         public CompositeFuture(params IFuture[] futures)
         {
-            foreach (var future in futures)
-            {
-                if (future == null)
-                {
-                    continue;
-                }
-                AddFuture(future);
-            }
+            Initialize(futures);
         }
         
-        public override bool Reuse()
+        public IFuture Initialize(IEnumerable<IFuture> futures)
         {
-            if (!IsDone && !IsCancelled)
+            foreach (var future in futures)
+            {
+                AddFuture(future);
+            }
+
+            return this;
+        }
+        
+        public bool AddFuture(IFuture future)
+        {
+            if (IsRun || IsDone || IsCancelled || future == null || future.IsDone || future.IsCancelled)
             {
                 return false;
             }
-
-            IsCancelled = false;
-            IsDone = false;
-            IsRun = false;
+            
+            _futures.Add(future);
             return true;
         }
-
-        public override void Complete(bool force = false)
+        
+        protected override void OnRun()
         {
-            if (IsPromise || IsCancelled || IsDone)
+            if (_futures.Count == 0)
             {
-                return;
-            }
-            
-            IsForceCompletion = force;
-            
-            IsDone = true;
-            IsRun = false;
-            var copy = GetFuturesCopyList();
-            _futures.Clear();
-
-            foreach (var future in copy)
-            {
-                if (future.IsPromise)
-                {
-                    throw new Exception("future.isPromise == true");
-                }
-
-                if (future.IsCancelled || future.IsDone)
-                {
-                    continue;
-                }
-                
-                future.RemoveListener(OnFutureComplete);
-                future.Complete(force);
-            }
-
-            CallHandlers();
-            CallFinalizingHandlers();
-        }
-
-        public override void Cancel()
-        {
-            if (IsPromise || IsCancelled || IsDone)
-            {
-                return;
-            }
-            
-            IsCancelled = true;
-            IsRun = false;
-            var copy = GetFuturesCopyList();
-            _futures.Clear();
-
-            foreach (var future in copy)
-            {
-                if (future.IsPromise)
-                {
-                    throw new Exception("future.isPromise == true");
-                }
-
-                if (future.IsCancelled || future.IsDone)
-                {
-                    continue;
-                }
-                
-                future.RemoveListener(OnFutureComplete);
-                future.Cancel();
-            }
-
-            CallHandlers();
-            CallFinalizingHandlers();
-        }
-
-        public void AddFuture(IFuture future)
-        {
-            if (IsRun || IsDone || IsCancelled || future.IsDone || future.IsCancelled)
-            {
+                Complete();
                 return;
             }
 
-            _futures.Add(future);
+            foreach (var future in new List<IFuture>(_futures))
+            {
+                future.Run();
+                future.AddListener(FutureCompletionState.Both, OnFutureComplete);
+            }
         }
 
         private void OnFutureComplete(IFuture future)
         {
             _futures.Remove(future);
-            future.RemoveListener(OnFutureComplete);
-
-            if (_futures.Count > 0)
-            {
-                return;
-            }
             
-            IsDone = true;
-            IsRun = false;
-
-            CallHandlers();
-            CallFinalizingHandlers();
+            if (_futures.Count == 0)
+            {
+                Complete();
+            }
         }
 
-        public override IFuture Run()
+        protected override void OnComplete()
         {
-            if (IsRun)
+            if (IsCancelled || IsForceCompleted)
             {
-                return this;
-            }
-            
-            IsRun = true;
-            IsDone = _futures.Count == 0;
-
-            CallStartingHandlers();
-
-            if (IsDone)
-            {
-                IsRun = false;
-                CallHandlers();
-                CallFinalizingHandlers();
-            }
-            else
-            {
-                foreach (var future in GetFuturesCopyList())
+                foreach (var future in _futures)
                 {
-                    future.Run();
-                    future.AddListener(FutureCompletionState.Both, OnFutureComplete);
+                    future.RemoveListener(OnFutureComplete);
+
+                    if (IsCancelled)
+                    {
+                        future.Cancel();
+                    }
+                    else
+                    {
+                        future.Complete(true);
+                    }
                 }
             }
-            return this;
-        }
-        
-        private List<IFuture> GetFuturesCopyList()
-        {
-            return new List<IFuture>(_futures);
+            
+            _futures.Clear();
         }
     }
 }

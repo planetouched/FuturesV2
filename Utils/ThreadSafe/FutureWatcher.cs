@@ -9,13 +9,15 @@ namespace FuturesV2.Utils.ThreadSafe
     public class FutureWatcher
     {
         private readonly ConcurrentDictionary<IFuture, bool> _futures = new ConcurrentDictionary<IFuture, bool>(); 
-        public IFuture[] FuturesListCopy => _futures.Keys.ToArray();
-
+        public IFuture[] Futures => _futures.Keys.ToArray();
         public int FuturesCount => _futures.Count;
 
         public void AddFuture(IFuture future)
         {
-            if (future == null) return;
+            if (future == null)
+            {
+                return;
+            }
 
             if (_futures.TryAdd(future, true))
             {

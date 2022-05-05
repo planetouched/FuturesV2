@@ -51,7 +51,7 @@ namespace FuturesV2.Coroutine
             enumerator = null;
         }
 
-        protected override void OnReuse()
+        public override void ReUse()
         {
             throw new NotSupportedException();
         }

@@ -5,47 +5,51 @@ using FuturesV2.Enums;
 
 namespace FuturesV2.Utils
 {
-    public class FutureQueue : IFutureContainer
+    public class FutureQueue : IFutureCollection
     {
-        private readonly Queue<IFuture> _queueFutures = new Queue<IFuture>();
+        private readonly Queue<IFuture> _queue = new Queue<IFuture>();
         private IFuture _current;
-        public int FuturesCount => _queueFutures.Count;
+        public IFuture[] Futures => _queue.ToArray();
+        public int FuturesCount => _queue.Count;
         public event Action<IFuture> FutureCompleted;
         public event Action AllFuturesCompleted;
         
-        public void AddFuture(IFuture future)
+        public bool AddFuture(IFuture future)
         {
-            if (future.IsDone || future.IsCancelled || future.IsRun)
+            if (future.IsDone || future.IsCancelled)
             {
-                throw new Exception("future already run or completed");
+                return false;
             }
 
-            _queueFutures.Enqueue(future);
-            future.AddListener(FutureCompletionState.Both, FutureComplete);
+            _queue.Enqueue(future);
             
-            if (_queueFutures.Count == 1)
+            RunNext();
+            return true;
+        }
+
+        private void RunNext()
+        {
+            if (_current == null)
             {
-                _current = future;
-                future.Run();
+                _current = _queue.Dequeue();
+                _current.AddListener(FutureCompletionState.Both, FutureComplete);
+                _current.Run();
             }
         }
 
-        private void FutureComplete(IFuture f)
+        private void FutureComplete(IFuture future)
         {
-            _queueFutures.Dequeue();
+            FutureCompleted?.Invoke(future);
             _current = null;
             
-            if (_queueFutures.Count > 0)
+            if (_queue.Count > 0)
             {
-                _current = _queueFutures.Peek();
+                RunNext();
             }
             else
             {
                 AllFuturesCompleted?.Invoke();
             }
-            
-            FutureCompleted?.Invoke(f);
-            _current?.Run();
         }
 
         public void CancelCurrent()
@@ -55,13 +59,13 @@ namespace FuturesV2.Utils
 
         public void Cancel()
         {
-            foreach (var future in new List<IFuture>(_queueFutures))
+            foreach (var future in new List<IFuture>(_queue))
             {
                 future.RemoveListener(FutureComplete);
                 future.Cancel();
             }
             
-            _queueFutures.Clear();
+            _queue.Clear();
         }
     }
 }

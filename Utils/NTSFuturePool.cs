@@ -1,18 +1,15 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using FuturesV2._Base;
 
 namespace FuturesV2.Utils
 {
-    public static class FuturePool
+    public static class NTSFuturePool
     {
         private static readonly Dictionary<Type, Queue<IFuture>> _pool = new Dictionary<Type, Queue<IFuture>>();
 
-        public static bool Has<T>()
-        {
-            return _pool.ContainsKey(typeof(T));
-        }
-        
         public static T Take<T>() where T : class, IFuture, new()
         {
             var future = TakeUnsafe<T>();
@@ -22,7 +19,7 @@ namespace FuturesV2.Utils
             return future;
         }
 
-        public static T TakeUnsafe<T>() where T : class, IFuture, new()
+        private static T TakeUnsafe<T>() where T : class, IFuture, new()
         {
             var type = typeof(T);
             if (!_pool.TryGetValue(type, out var queue))
@@ -34,7 +31,7 @@ namespace FuturesV2.Utils
             if (queue.Count > 0)
             {
                 future = (T)queue.Dequeue();
-                future.Reuse();
+                future.ReUse();
             }
             else
             {
@@ -44,12 +41,12 @@ namespace FuturesV2.Utils
             return future;
         }
 
-        public static void Return<T>(IFuture future) where T : class, IFuture
+        private static void Return<T>(IFuture future) where T : class, IFuture
         {
             _pool[typeof(T)].Enqueue(future);
         }
 
-        public static void Free()
+        public static void Clean()
         {
             _pool.Clear();
         }

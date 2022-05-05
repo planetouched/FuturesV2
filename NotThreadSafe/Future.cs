@@ -1,4 +1,5 @@
-﻿using FuturesV2._Base;
+﻿using System;
+using FuturesV2._Base;
 
 namespace FuturesV2.NotThreadSafe
 {
@@ -6,9 +7,14 @@ namespace FuturesV2.NotThreadSafe
     {
         public sealed override void Cancel()
         {
-            if (IsPromise || IsCancelled || IsDone)
+            if (IsCancelled || IsDone)
             {
                 return;
+            }
+
+            if (IsPromise)
+            {
+                throw new Exception("Try to cancel promise");
             }
 
             IsCancelled = true;
@@ -24,7 +30,7 @@ namespace FuturesV2.NotThreadSafe
                 return;
             }
 
-            IsForceCompletion = force;
+            IsForceCompleted = force;
             IsDone = true;
             OnComplete();
             CallHandlers();
@@ -47,23 +53,16 @@ namespace FuturesV2.NotThreadSafe
         protected abstract void OnRun();
         protected abstract void OnComplete();
 
-        protected virtual void OnReuse()
-        {
-        }
-        
-        public sealed override bool Reuse()
+        public override void ReUse()
         {
             if (!IsDone && !IsCancelled)
             {
-                return false;
+                throw new Exception("ReUse");
             }
-
+            
             IsCancelled = false;
             IsDone = false;
             IsRun = false;
-
-            OnReuse();
-            return true;
         }
     }
 }
