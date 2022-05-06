@@ -13,11 +13,6 @@ namespace FuturesV2.Coroutine
 
         protected void Next(IFuture obj)
         {
-            if (IsCancelled)
-            {
-                return;
-            }
-            
             if (enumerator.MoveNext())
             {
                 if (enumerator.Current != null)
