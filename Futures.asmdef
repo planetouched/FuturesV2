@@ -1,0 +1,16 @@
+{
+    "name": "Futures",
+    "rootNamespace": "",
+    "references": [
+        "SharedClasses"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

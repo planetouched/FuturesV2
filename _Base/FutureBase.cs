@@ -1,10 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using FuturesV2.Enums;
+#if REFVIEW
+using SharedClasses.Debugging;
+#endif
 
 namespace FuturesV2._Base
 {
-    public abstract class FutureBase : IFuture
+    public abstract class FutureBase : 
+#if REFVIEW
+        ReferenceCounter,
+#endif 
+        IFuture
     {
         public bool IsCancelled { get; protected set; }
         public bool IsDone { get; protected set; }
