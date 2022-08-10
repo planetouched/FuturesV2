@@ -14,20 +14,28 @@ namespace FuturesV2.Utils.ThreadSafe
 
         public void AddFuture(IFuture future)
         {
-            if (future == null)
+            if (future == null || future.IsDone || future.IsCancelled)
             {
                 return;
             }
 
-            if (_futures.TryAdd(future, true))
+            var sw = new SpinWait();
+            
+            for(;;)
             {
-                future.AddListener(FutureCompletionState.Both, InnerRemoveFuture);
+                if (_futures.TryAdd(future, true))
+                {
+                    future.AddListener(FutureCompletionState.Both, InnerRemoveFuture);
+                    break;
+                }
+                
+                sw.SpinOnce();  
             }
         }
 
         private void InnerRemoveFuture(IFuture future)
         {
-            var spinWait = new SpinWait();
+            var sw = new SpinWait();
 
             for (;;)
             {
@@ -37,7 +45,7 @@ namespace FuturesV2.Utils.ThreadSafe
                     break;
                 }
 
-                spinWait.SpinOnce();
+                sw.SpinOnce();
             }
         }
 
