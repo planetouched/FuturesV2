@@ -36,9 +36,14 @@ namespace FuturesV2.Utils
             return true;
         }
         
-        public void AddTask(Action method)
+        public void RunTask<T>(Action<T> method, T state)
         {
-            AddFuture(new FutureTask(method));
+            AddFuture(new FutureTask<T>(method, state));
+        }
+        
+        public void RunTask(Action<object> method, object state)
+        {
+            AddFuture(new FutureTask<object>(method, state));
         }
         
         public void Next()

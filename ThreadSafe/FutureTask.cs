@@ -2,22 +2,24 @@ using System;
 
 namespace FuturesV2.ThreadSafe
 {
-    public class FutureTask<T> : ThreadSafeFuture
+    public class FutureTask<TParam, TRet> : ThreadSafeFuture
     {
-        public T Result { get; private set; }
-        private readonly Func<T> _func;
+        public TRet Result { get; private set; }
+        private readonly Func<TParam, TRet> _func;
+        private readonly TParam _state;
         public event Action<Exception> Exception;
         
-        public FutureTask(Func<T> func)
+        public FutureTask(Func<TParam, TRet> func, TParam state)
         {
             _func = func;
+            _state = state;
         }
 
         protected override void OnRun()
         {
             try
             {
-                Result = _func();
+                Result = _func(_state);
             }
             catch (Exception e)
             {
@@ -34,21 +36,23 @@ namespace FuturesV2.ThreadSafe
         }
     }
     
-    public class FutureTask : ThreadSafeFuture
+    public class FutureTask<TParam> : ThreadSafeFuture
     {
-        private readonly Action _action;
+        private readonly Action<TParam> _action;
         public event Action<Exception> Exception;
+        private readonly TParam _state;
         
-        public FutureTask(Action action)
+        public FutureTask(Action<TParam> action, TParam state)
         {
             _action = action;
+            _state = state;
         }
 
         protected override void OnRun()
         {
             try
             {
-                _action();
+                _action(_state);
             }
             catch (Exception e)
             {
