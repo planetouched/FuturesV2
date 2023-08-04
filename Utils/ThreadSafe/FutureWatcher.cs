@@ -19,33 +19,17 @@ namespace FuturesV2.Utils.ThreadSafe
                 return;
             }
 
-            var sw = new SpinWait();
-            
-            for(;;)
+            if (_futures.TryAdd(future, true))
             {
-                if (_futures.TryAdd(future, true))
-                {
-                    future.AddListener(FutureCompletionState.Both, InnerRemoveFuture);
-                    break;
-                }
-                
-                sw.SpinOnce();  
+                future.AddListener(FutureCompletionState.Both, InnerRemoveFuture);
             }
         }
 
         private void InnerRemoveFuture(IFuture future)
         {
-            var sw = new SpinWait();
-
-            for (;;)
+            if (_futures.TryRemove(future, out _))
             {
-                if (_futures.TryRemove(future, out _))
-                {
-                    future.RemoveListener(InnerRemoveFuture);
-                    break;
-                }
-
-                sw.SpinOnce();
+                future.RemoveListener(InnerRemoveFuture);
             }
         }
 
