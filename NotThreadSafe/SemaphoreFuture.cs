@@ -66,7 +66,7 @@ namespace FuturesV2.NotThreadSafe
 
         private void OnFutureComplete(IFuture obj)
         {
-            if (IsCancelled || IsForceCompleted)
+            if (IsCancelled || IsCompletedForcibly)
             {
                 return;
             }
@@ -92,7 +92,7 @@ namespace FuturesV2.NotThreadSafe
             {
                 _futureWatcher.CancelFutures();
             }
-            else if (IsForceCompleted)
+            else if (IsCompletedForcibly)
             {
                 _futureWatcher.ForceCompleteFutures();
             }

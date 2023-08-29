@@ -16,7 +16,7 @@ namespace FuturesV2._Base
         public bool IsCancelled { get; protected set; }
         public bool IsDone { get; protected set; }
         public bool IsRun { get; protected set; }
-        public bool IsForceCompleted { get; protected set; }
+        public bool IsCompletedForcibly { get; protected set; }
         public bool IsPromise { get; private set; }
 
         private event Action<IFuture> Finalized;

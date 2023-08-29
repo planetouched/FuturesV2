@@ -8,7 +8,7 @@ namespace FuturesV2._Base
         bool IsCancelled { get; }
         bool IsDone { get; }
         bool IsRun { get; }
-        bool IsForceCompleted { get; }
+        bool IsCompletedForcibly { get; }
         bool IsPromise { get; }
         IFuture AddListenerOnStart(Action<IFuture> method);
         IFuture AddListener(FutureCompletionState state, Action<IFuture> method);

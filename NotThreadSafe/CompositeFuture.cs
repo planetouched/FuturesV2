@@ -68,7 +68,7 @@ namespace FuturesV2.NotThreadSafe
 
         protected override void OnComplete()
         {
-            if (IsCancelled || IsForceCompleted)
+            if (IsCancelled || IsCompletedForcibly)
             {
                 foreach (var future in _futures)
                 {

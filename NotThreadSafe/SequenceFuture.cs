@@ -84,7 +84,7 @@ namespace FuturesV2.NotThreadSafe
                 {
                     _current.Cancel();
                 }
-                else if (IsForceCompleted)
+                else if (IsCompletedForcibly)
                 {
                     _current.Complete(true);
                 }

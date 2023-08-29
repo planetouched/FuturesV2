@@ -30,7 +30,7 @@ namespace FuturesV2.NotThreadSafe
                 return;
             }
 
-            IsForceCompleted = force;
+            IsCompletedForcibly = force;
             IsDone = true;
             OnComplete();
             CallHandlers();

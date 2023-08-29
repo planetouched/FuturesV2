@@ -11,7 +11,7 @@ namespace FuturesV2.ThreadSafe
         public bool IsCancelled { get; private set; }
         public bool IsDone { get; private set; }
         public bool IsRun { get; private set; }
-        public bool IsForceCompleted { get; private set;}
+        public bool IsCompletedForcibly { get; private set;}
         public bool IsPromise { get; private set; }
 
         private event Action<IFuture> Finalized;
@@ -193,7 +193,7 @@ namespace FuturesV2.ThreadSafe
                 }
 
                 IsDone = true;
-                IsForceCompleted = force;
+                IsCompletedForcibly = force;
             }
 
             OnComplete();
