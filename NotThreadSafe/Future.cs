@@ -55,14 +55,12 @@ namespace FuturesV2.NotThreadSafe
 
         public override void ReUse()
         {
-            if (!IsDone && !IsCancelled)
+            if (IsDone || IsCancelled)
             {
-                throw new Exception("ReUse");
+                IsCancelled = false;
+                IsDone = false;
+                IsRun = false;
             }
-            
-            IsCancelled = false;
-            IsDone = false;
-            IsRun = false;
         }
     }
 }
