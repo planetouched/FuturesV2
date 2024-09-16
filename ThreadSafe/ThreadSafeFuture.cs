@@ -234,10 +234,7 @@ namespace FuturesV2.ThreadSafe
 
         protected void SetAsPromise()
         {
-            lock (_syncRoot)
-            {
-                IsPromise = true;
-            }
+            IsPromise = true;
         }
     }
 }
