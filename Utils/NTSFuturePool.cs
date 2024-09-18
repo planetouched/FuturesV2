@@ -6,7 +6,7 @@ namespace FuturesV2.Utils
 {
     public static class NTSFuturePool
     {
-        private static readonly Dictionary<Type, Queue<IFuture>> _pool = new Dictionary<Type, Queue<IFuture>>();
+        private static readonly Dictionary<Type, Queue<IFuture>> _pool = new();
 
         public static T Take<T>() where T : class, IFuture, new()
         {
