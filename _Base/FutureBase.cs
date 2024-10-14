@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using FuturesV2.Enums;
 #if REFVIEW
-using SharedClasses.Debugging;
+using RefViewer.Runtime;
 #endif
 
 namespace FuturesV2._Base

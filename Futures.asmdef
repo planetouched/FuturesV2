@@ -2,7 +2,7 @@
     "name": "Futures",
     "rootNamespace": "",
     "references": [
-        "SharedClasses"
+        "RefViewer.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
