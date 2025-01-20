@@ -58,6 +58,12 @@ namespace FuturesV2.NotThreadSafe
         
         protected override void OnRun()
         {
+            if (_futures.Count == 0)
+            {
+                Complete();
+                return;
+            }
+            
             for (int i = 0; i < Math.Min(_simultaneously, _futures.Count) ; i++)
             {
                 RunNextFuture();

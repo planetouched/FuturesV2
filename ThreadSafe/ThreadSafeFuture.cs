@@ -7,7 +7,7 @@ namespace FuturesV2.ThreadSafe
 {
     public abstract class ThreadSafeFuture : IFuture
     {
-        private readonly object _syncRoot;
+        private readonly object _syncRoot = new();
         public bool IsCancelled { get; private set; }
         public bool IsDone { get; private set; }
         public bool IsRun { get; private set; }
@@ -17,12 +17,7 @@ namespace FuturesV2.ThreadSafe
         private event Action<IFuture> Finalized;
         private event Action<IFuture> Started;
         
-        private readonly List<(FutureCompletionState state, Action<IFuture> action)> _onComplete = new List<(FutureCompletionState state, Action<IFuture> action)>(2); 
-
-        protected ThreadSafeFuture()
-        {
-            _syncRoot = new object();
-        }
+        private readonly List<(FutureCompletionState state, Action<IFuture> action)> _onComplete = new List<(FutureCompletionState state, Action<IFuture> action)>(2);
 
         private void CallStartingHandlers()
         {

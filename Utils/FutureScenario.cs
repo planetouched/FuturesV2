@@ -6,7 +6,7 @@ using FuturesV2.ThreadSafe;
 
 namespace FuturesV2.Utils
 {
-    public class FutureScenario : IFutureContainer
+    public class FutureScenario
     {
         private SequenceFuture _sequenceFuture;
         private CompositeFuture _current;
@@ -35,7 +35,7 @@ namespace FuturesV2.Utils
             _current.AddFuture(future);
             return true;
         }
-        
+
         public void RunTask<T>(Action<T> method, T state)
         {
             AddFuture(new FutureTask<T>(method, state));

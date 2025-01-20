@@ -5,7 +5,7 @@ using FuturesV2.Enums;
 
 namespace FuturesV2.Utils
 {
-    public class FutureQueue : IFutureCollection
+    public class FutureQueue
     {
         private readonly Queue<IFuture> _queue = new Queue<IFuture>();
         private IFuture _current;

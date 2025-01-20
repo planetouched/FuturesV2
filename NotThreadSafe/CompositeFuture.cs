@@ -9,7 +9,7 @@ namespace FuturesV2.NotThreadSafe
         private readonly List<IFuture> _futures = new List<IFuture>();
         public IFuture[] Futures => _futures.ToArray();
         public int FuturesCount => _futures.Count;
-        
+
         public CompositeFuture(IEnumerable<IFuture> futures)
         {
             Initialize(futures);
