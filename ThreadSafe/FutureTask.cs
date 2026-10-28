@@ -7,7 +7,7 @@ namespace FuturesV2.ThreadSafe
         public TRet Result { get; private set; }
         private readonly Func<TParam, TRet> _func;
         private readonly TParam _state;
-        public event Action<Exception> Exception;
+        public Exception InnerException { get; private set; }
         
         public FutureTask(Func<TParam, TRet> func, TParam state)
         {
@@ -23,9 +23,7 @@ namespace FuturesV2.ThreadSafe
             }
             catch (Exception e)
             {
-                Exception?.Invoke(e);
-                Exception = null;
-                throw;
+                InnerException = e;
             }
             
             Complete();
@@ -39,7 +37,7 @@ namespace FuturesV2.ThreadSafe
     public class FutureTask<TParam> : ThreadSafeFuture
     {
         private readonly Action<TParam> _action;
-        public event Action<Exception> Exception;
+        public Exception InnerException { get; private set; }
         private readonly TParam _state;
         
         public FutureTask(Action<TParam> action, TParam state)
@@ -56,11 +54,9 @@ namespace FuturesV2.ThreadSafe
             }
             catch (Exception e)
             {
-                Exception?.Invoke(e);
-                Exception = null;
-                throw;
+                InnerException = e;
             }
-            
+
             Complete();
         }
 
